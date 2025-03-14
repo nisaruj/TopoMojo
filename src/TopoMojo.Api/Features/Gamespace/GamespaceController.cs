@@ -150,6 +150,15 @@ public class GamespaceController(
 
         string token = Guid.NewGuid().ToString("n");
 
+        if (model.Players.Length == 0) {
+            model.Players = new RegistrationPlayer[] {
+                new RegistrationPlayer {
+                    SubjectId = Actor.Id,
+                    SubjectName = Actor.Name
+                }
+            };
+        }
+
         if (model.Players.Length != 0)
         {
             string key = $"{TicketAuthentication.TicketCachePrefix}{token}";
@@ -162,6 +171,12 @@ public class GamespaceController(
         }
 
         result.LaunchpointUrl = $"{options.LaunchUrl}?t={token}&g={result.Id}";
+
+        // Register VMs for Crucible Player
+        foreach (var vm in result.Vms)
+        {
+            _ = gamespaceService.RegisterVM(result.Id, token, vm.Id, vm.Name);
+        }
 
         // if url is relative, make absolute
         if (!result.LaunchpointUrl.Contains("://"))

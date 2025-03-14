@@ -12,6 +12,7 @@ using TopoMojo.Hypervisor;
 using TopoMojo.Api.Models;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
+using System.Text.Json;
 
 namespace TopoMojo.Api.Services
 {
@@ -1084,5 +1085,48 @@ namespace TopoMojo.Api.Services
 
         private static int WeightToPoints(double weight, double maxPoints)
             => (int)Math.Round(weight * maxPoints, 0, MidpointRounding.AwayFromZero);
+
+
+        public async Task<bool> RegisterVM(string gamespace_id, string ticket, string vm_id, string vm_name) 
+        {
+            HttpClient client = new HttpClient();
+
+            // TODO: Move this to configuration
+            string apiUrl = "https://vm-registrar.crucible.io/new";
+
+            // Prepare the JSON payload
+            var payload = new
+            {
+                gamespace_id = gamespace_id,
+                ticket = ticket,
+                proxmox_vms = new[]
+                {
+                    new { name = vm_name, id = vm_id }
+                }
+            };
+
+            // Serialize JSON using System.Text.Json
+            string jsonPayload = JsonSerializer.Serialize(payload);
+
+            // Create HTTP content
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            try
+            {
+                // Send the HTTP request
+                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                // Read response
+                string responseString = await response.Content.ReadAsStringAsync();
+
+                // Return true if the request was successful
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                return false;
+            }
+        }
     }
 }
