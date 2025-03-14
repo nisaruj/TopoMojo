@@ -181,6 +181,9 @@ namespace TopoMojo.Hypervisor.Proxmox
             Result task;
             Vm vm = null;
 
+            // Sometimes the cache is not up to date, so we need to reload it
+            await ReloadVmCache();
+
             _logger.LogDebug("deploy: create vm...");
             var targetNode = await GetTargetNode();
             var vmTemplate = _vmCache
