@@ -68,7 +68,7 @@ namespace TopoMojo.Api
 
             string value = await _cache.GetStringAsync(key);
 
-            await _cache.RemoveAsync(key);
+            // await _cache.RemoveAsync(key);
 
             string subject = value.Untagged();
 
